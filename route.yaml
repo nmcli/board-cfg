@@ -1,0 +1,14 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: board-route
+  namespace: board
+spec:
+  to:
+    kind: Service
+    name: board-service
+  tls: null
+  host: cys.board.com
+  port:
+    targetPort: 8080
+

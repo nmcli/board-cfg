@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: board-app
+  namespace: board
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: board-app
+  template:
+    metadata:
+      labels:
+        app: board-app
+    spec:
+      containers:
+        - name: jboss
+          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:latest
+          ports:
+            - containerPort: 8080
+
