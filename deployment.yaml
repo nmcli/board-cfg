@@ -18,4 +18,16 @@ spec:
           image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-12-16-45-08
           ports:
             - containerPort: 8080
+          env:
+            - name: WILDFLY_BIND
+              value: "0.0.0.0"
+            - name: WILDFLY_PORT
+              value: "8080"
+            - name: WILDFLY_ENABLE_HTTPS
+              value: "false"
+            - name: WILDFLY_ENABLE_HTTP
+              value: "true"
+          command: ["/bin/sh", "-c"]
+          args:
+            - "/opt/jboss/container/wildfly/s2i/run.sh"
 

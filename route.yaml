@@ -4,11 +4,11 @@ metadata:
   name: board-route
   namespace: board
 spec:
+  host: cys.board.com
   to:
     kind: Service
     name: board-service
-  tls:
-    termination: ""
-  host: cys.board.com
   port:
     targetPort: 8080
+  tls:
+    termination: ""
