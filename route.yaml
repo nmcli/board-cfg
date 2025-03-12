@@ -13,4 +13,4 @@ spec:
   port:
     targetPort: 8080
   tls:
-    termination: ""
+    termination: edge
