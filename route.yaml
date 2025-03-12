@@ -8,9 +8,7 @@ spec:
     kind: Service
     name: board-service
   tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Allow
+    termination: ""
   host: cys.board.com
   port:
     targetPort: 8080
-  wildcardPolicy: None
