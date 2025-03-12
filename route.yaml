@@ -3,6 +3,8 @@ kind: Route
 metadata:
   name: board-route
   namespace: board
+  labels:
+    type: sharded
 spec:
   host: cys.board.com
   to:
