@@ -27,6 +27,8 @@ spec:
               value: "false"
             - name: WILDFLY_ENABLE_HTTP
               value: "true"
+            - name: WILDFLY_SERVER_CONFIG
+              value: "standalone-openshift.xml"
           command: ["/bin/sh", "-c"]
           args:
             - |
