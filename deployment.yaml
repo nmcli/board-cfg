@@ -62,5 +62,12 @@ spec:
               echo "==== Step 5: Enabling JBoss Management Console ===="
               /opt/eap/bin/jboss-cli.sh --connect --command="/core-service=management/management-interface=http-interface:write-attribute(name=enabled,value=true)"
 
-              echo "==== Step 6: Starting JBoss ===="
+              echo "==== Step 6: Removing unused subsystems to prevent errors ===="
+              /opt/eap/bin/jboss-cli.sh --connect --commands=
+              "/subsystem=jca:remove",
+              "/subsystem=transactions:remove",
+              "/subsystem=ee:write-attribute(name=default-bindings,value={context-service=default})"
+
+              echo "==== Step 7: Starting JBoss ===="
               exec /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml
+
