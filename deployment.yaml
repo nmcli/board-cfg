@@ -29,4 +29,4 @@ spec:
               value: "true"
           command: ["/bin/sh", "-c"]
           args:
-            - "/opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml"
+            - "rm -rf /opt/eap/standalone/deployments/activemq-rar.rar && /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml"
