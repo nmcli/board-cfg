@@ -29,4 +29,4 @@ spec:
               value: "true"
           command: ["/bin/sh", "-c"]
           args:
-            - "rm -rf /opt/eap/standalone/deployments/activemq-rar.rar && /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml"
+            - "echo '<subsystem xmlns=\"urn:jboss:domain:transactions:5.0\"><core-environment><process-id><uuid /></process-id></core-environment><recovery-environment><socket-binding ref=\"txn-recovery-environment\"/></recovery-environment></subsystem>' >> /opt/eap/standalone/configuration/standalone-openshift.xml && /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml"
