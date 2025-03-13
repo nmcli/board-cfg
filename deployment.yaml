@@ -33,6 +33,9 @@ spec:
               LOGGING_CONFIG="/opt/eap/standalone/configuration/logging.properties"
               XML_CONFIG="/opt/eap/standalone/configuration/standalone-openshift.xml"
 
+              echo "Removing activemq-rar.rar to prevent deployment failure..."
+              rm -f /opt/eap/standalone/deployments/activemq-rar.rar
+
               echo "Setting up JBoss logging configuration..."
               cat << EOF > $XML_CONFIG
               <formatter name="CONSOLE-FORMATTER">
@@ -47,4 +50,3 @@ spec:
 
               echo "Starting JBoss..."
               exec /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml
-
