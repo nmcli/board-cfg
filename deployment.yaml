@@ -40,7 +40,7 @@ spec:
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar.deployed
               
               echo "==== Step 2: Ensuring activemq-rar.rar is undeployed in JBoss CLI ===="
-              /opt/eap/bin/jboss-cli.sh --connect --commands="undeploy activemq-rar.rar --keep-content, quit"
+              /opt/eap/bin/jboss-cli.sh --connect --commands="undeploy activemq-rar.rar --keep-content"
 
               echo "==== Step 3: Verifying activemq-rar.rar is removed ===="
               if [ -f "/opt/eap/standalone/deployments/activemq-rar.rar" ]; then
@@ -64,12 +64,19 @@ spec:
               echo "==== Step 5: Enabling JBoss Management Console ===="
               /opt/eap/bin/jboss-cli.sh --connect --command="/core-service=management/management-interface=http-interface:write-attribute(name=enabled,value=true)"
 
-              echo "==== Step 6: Removing unused subsystems to prevent errors ===="
-              /opt/eap/bin/jboss-cli.sh --connect --commands=
-              "/subsystem=jca:remove",
-              "/subsystem=transactions:remove",
-              "/subsystem=ee:write-attribute(name=default-bindings,value={context-service=default})"
+              echo "==== Step 6: Waiting for JBoss to be ready ===="
+              until /opt/eap/bin/jboss-cli.sh --connect --commands=":read-attribute(name=server-state)" | grep -q "running"; do
+                echo "Waiting for JBoss to start..."
+                sleep 5
+              done
 
-              echo "==== Step 7: Starting JBoss ===="
+              echo "==== Step 7: Removing unused subsystems to prevent errors ===="
+              /opt/eap/bin/jboss-cli.sh --connect <<EOF
+              /subsystem=jca:remove
+              /subsystem=transactions:remove
+              /subsystem=ee:write-attribute(name=default-bindings,value={context-service=default})
+              reload
+              EOF
+
+              echo "==== Step 8: Starting JBoss ===="
               exec /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml
-
