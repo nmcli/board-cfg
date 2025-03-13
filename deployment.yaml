@@ -38,17 +38,26 @@ spec:
               echo "==== Step 1: Removing activemq-rar.rar to prevent deployment failure ===="
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar.deployed
-              
-              echo "==== Step 2: Ensuring activemq-rar.rar is undeployed in JBoss CLI ===="
+
+              echo "==== Step 2: Starting JBoss in background ===="
+              /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml &
+
+              echo "==== Step 3: Waiting for JBoss to be ready ===="
+              RETRY=0
+              until /opt/eap/bin/jboss-cli.sh --connect --commands=":read-attribute(name=server-state)" | grep -q "running"; do
+                if [ $RETRY -ge 10 ]; then
+                  echo "ERROR: JBoss did not start in time."
+                  exit 1
+                fi
+                echo "Waiting for JBoss to start... ($RETRY/10)"
+                sleep 5
+                RETRY=$((RETRY+1))
+              done
+
+              echo "==== Step 4: Verifying activemq-rar.rar is undeployed ===="
               /opt/eap/bin/jboss-cli.sh --connect --commands="undeploy activemq-rar.rar --keep-content"
 
-              echo "==== Step 3: Verifying activemq-rar.rar is removed ===="
-              if [ -f "/opt/eap/standalone/deployments/activemq-rar.rar" ]; then
-                echo "ERROR: activemq-rar.rar still exists!"
-                exit 1
-              fi
-
-              echo "==== Step 4: Setting up JBoss logging configuration ===="
+              echo "==== Step 5: Setting up JBoss logging configuration ===="
               if [ -f "$XML_CONFIG" ]; then
                 echo "Config file found: $XML_CONFIG"
               else
@@ -61,14 +70,8 @@ spec:
               formatter.CONSOLE-FORMATTER.pattern=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n
               EOF
 
-              echo "==== Step 5: Enabling JBoss Management Console ===="
+              echo "==== Step 6: Enabling JBoss Management Console ===="
               /opt/eap/bin/jboss-cli.sh --connect --command="/core-service=management/management-interface=http-interface:write-attribute(name=enabled,value=true)"
-
-              echo "==== Step 6: Waiting for JBoss to be ready ===="
-              until /opt/eap/bin/jboss-cli.sh --connect --commands=":read-attribute(name=server-state)" | grep -q "running"; do
-                echo "Waiting for JBoss to start..."
-                sleep 5
-              done
 
               echo "==== Step 7: Removing unused subsystems to prevent errors ===="
               /opt/eap/bin/jboss-cli.sh --connect <<EOF
@@ -78,5 +81,5 @@ spec:
               reload
               EOF
 
-              echo "==== Step 8: Starting JBoss ===="
-              exec /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml
+              echo "==== Step 8: Keeping JBoss Running ===="
+              fg
