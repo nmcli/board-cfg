@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: jboss
-          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-13-14-56-15
+          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-13-14-54-33
           ports:
             - containerPort: 8080
           env:
@@ -35,6 +35,15 @@ spec:
 
               echo "Removing activemq-rar.rar to prevent deployment failure..."
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar
+
+              echo "Ensuring activemq-rar.rar is undeployed in JBoss CLI..."
+              /opt/eap/bin/jboss-cli.sh --connect --commands="undeploy activemq-rar.rar --keep-content, quit"
+
+              echo "Verifying activemq-rar.rar is removed..."
+              if [ -f "/opt/eap/standalone/deployments/activemq-rar.rar" ]; then
+                echo "ERROR: activemq-rar.rar still exists!"
+                exit 1
+              fi
 
               echo "Setting up JBoss logging configuration..."
               cat << EOF > $XML_CONFIG
