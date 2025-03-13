@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: jboss
-          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-13-13-12-33
+          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-13-10-58-56
           ports:
             - containerPort: 8080
           env:
@@ -29,4 +29,4 @@ spec:
               value: "true"
           command: ["/bin/sh", "-c"]
           args:
-            - "/opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone.xml"
+            - "cp /opt/eap/standalone/configuration/standalone-full.xml /opt/eap/standalone/configuration/standalone.xml && /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone.xml"
