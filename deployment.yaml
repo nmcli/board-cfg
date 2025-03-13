@@ -29,4 +29,22 @@ spec:
               value: "true"
           command: ["/bin/sh", "-c"]
           args:
-            - "echo '<formatter name=\"CONSOLE-FORMATTER\"><pattern-formatter pattern=\"%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n\"/></formatter>' > /opt/eap/standalone/configuration/standalone-openshift.xml && echo 'formatter.CONSOLE-FORMATTER=org.jboss.logmanager.formatters.PatternFormatter' > /opt/eap/standalone/configuration/logging.properties && echo 'formatter.CONSOLE-FORMATTER.pattern=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n' >> /opt/eap/standalone/configuration/logging.properties && /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml"
+            - |
+              LOGGING_CONFIG="/opt/eap/standalone/configuration/logging.properties"
+              XML_CONFIG="/opt/eap/standalone/configuration/standalone-openshift.xml"
+
+              echo "Setting up JBoss logging configuration..."
+              cat << EOF > $XML_CONFIG
+              <formatter name="CONSOLE-FORMATTER">
+                <pattern-formatter pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
+              </formatter>
+              EOF
+
+              cat << EOF > $LOGGING_CONFIG
+              formatter.CONSOLE-FORMATTER=org.jboss.logmanager.formatters.PatternFormatter
+              formatter.CONSOLE-FORMATTER.pattern=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n
+              EOF
+
+              echo "Starting JBoss..."
+              exec /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml
+
