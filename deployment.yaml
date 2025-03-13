@@ -33,29 +33,34 @@ spec:
               LOGGING_CONFIG="/opt/eap/standalone/configuration/logging.properties"
               XML_CONFIG="/opt/eap/standalone/configuration/standalone-openshift.xml"
 
-              echo "Removing activemq-rar.rar to prevent deployment failure..."
+              echo "==== Step 1: Removing activemq-rar.rar to prevent deployment failure ===="
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar
-
-              echo "Ensuring activemq-rar.rar is undeployed in JBoss CLI..."
+              rm -f /opt/eap/standalone/deployments/activemq-rar.rar.deployed
+              
+              echo "==== Step 2: Ensuring activemq-rar.rar is undeployed in JBoss CLI ===="
               /opt/eap/bin/jboss-cli.sh --connect --commands="undeploy activemq-rar.rar --keep-content, quit"
 
-              echo "Verifying activemq-rar.rar is removed..."
+              echo "==== Step 3: Verifying activemq-rar.rar is removed ===="
               if [ -f "/opt/eap/standalone/deployments/activemq-rar.rar" ]; then
                 echo "ERROR: activemq-rar.rar still exists!"
                 exit 1
               fi
 
-              echo "Setting up JBoss logging configuration..."
-              cat << EOF > $XML_CONFIG
-              <formatter name="CONSOLE-FORMATTER">
-                <pattern-formatter pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
-              </formatter>
-              EOF
+              echo "==== Step 4: Setting up JBoss logging configuration ===="
+              if [ -f "$XML_CONFIG" ]; then
+                echo "Config file found: $XML_CONFIG"
+              else
+                echo "ERROR: $XML_CONFIG not found!"
+                exit 1
+              fi
 
               cat << EOF > $LOGGING_CONFIG
               formatter.CONSOLE-FORMATTER=org.jboss.logmanager.formatters.PatternFormatter
               formatter.CONSOLE-FORMATTER.pattern=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n
               EOF
 
-              echo "Starting JBoss..."
+              echo "==== Step 5: Enabling JBoss Management Console ===="
+              /opt/eap/bin/jboss-cli.sh --connect --command="/core-service=management/management-interface=http-interface:write-attribute(name=enabled,value=true)"
+
+              echo "==== Step 6: Starting JBoss ===="
               exec /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml
