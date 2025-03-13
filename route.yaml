@@ -12,5 +12,4 @@ spec:
     name: board-service
   port:
     targetPort: 8080
-  tls:
-    termination: edge
+  tls: null
