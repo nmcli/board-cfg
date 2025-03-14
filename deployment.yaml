@@ -35,16 +35,16 @@ spec:
               LOGGING_CONFIG="/opt/eap/standalone/configuration/logging.properties"
               XML_CONFIG="/opt/eap/standalone/configuration/standalone-openshift.xml"
 
-              echo "==== Step 1: Configuring JBoss Node Name ===="
-              export JBOSS_NODE_NAME="node-$(hostname | cut -c1-22)"
-
+              echo "==== Step 1: Configuring JBoss Node Name (Max 23 chars) ===="
+              export JBOSS_NODE_NAME="node-$(hostname | cut -c1-23)"
+              
               echo "==== Step 2: Removing activemq-rar.rar to prevent deployment failure ===="
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar.deployed
 
               echo "==== Step 3: Starting JBoss in background ===="
               /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml &
-              
+
               echo "==== Step 4: Waiting for JBoss to be ready ===="
               RETRY=0
               until /opt/eap/bin/jboss-cli.sh --connect --commands=":read-attribute(name=server-state)" | grep -q "running"; do
@@ -64,14 +64,14 @@ spec:
               EOF
 
               echo "==== Step 6: Enabling JBoss Management Console ===="
-              /opt/eap/bin/jboss-cli.sh --connect --command="/core-service=management/management-interface=http-interface:write-attribute(name=secure,value=false)"
+              /opt/eap/bin/jboss-cli.sh --connect --commands="/core-service=management/management-interface=http-interface:write-attribute(name=console-enabled,value=true)"
 
-              echo "==== Step 7: Removing unused subsystems to prevent errors ===="
+              echo "==== Step 7: Fixing transaction dependencies ===="
               /opt/eap/bin/jboss-cli.sh --connect <<EOF
-              /subsystem=jca:remove
-              /subsystem=transactions:remove
+              /subsystem=transactions:write-attribute(name=node-identifier,value="node-$(hostname | cut -c1-23)")
               reload
               EOF
 
               echo "==== Step 8: Keeping JBoss Running ===="
               wait
+
