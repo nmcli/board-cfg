@@ -18,20 +18,6 @@ spec:
           image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-14-09-36-37
           ports:
             - containerPort: 8080
-          env:
-            - name: WILDFLY_BIND
-              value: "0.0.0.0"
-            - name: WILDFLY_PORT
-              value: "8080"
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              echo "==== Step 1: Configuring JBoss Node Name (Max 23 chars) ===="
-              export JBOSS_NODE_NAME="node-$(hostname | cut -c1-23)"
-
-              echo "==== Step 2: Removing activemq-rar.rar to prevent deployment failure ===="
-              rm -f /opt/eap/standalone/deployments/activemq-rar.rar
-              rm -f /opt/eap/standalone/deployments/activemq-rar.rar.deployed
-
-              echo "==== Step 3: Starting JBoss ===="
-              exec /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml
+          # ✅ 환경 변수 제거
+          # ✅ 기본 실행 방식 유지
+          command: ["/opt/jboss/container/wildfly/s2i/run.sh"]
