@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: jboss
-          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-13-16-57-18
+          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:latest
           ports:
             - containerPort: 8080
           env:
@@ -35,14 +35,17 @@ spec:
               LOGGING_CONFIG="/opt/eap/standalone/configuration/logging.properties"
               XML_CONFIG="/opt/eap/standalone/configuration/standalone-openshift.xml"
 
-              echo "==== Step 1: Removing activemq-rar.rar to prevent deployment failure ===="
+              echo "==== Step 1: Configuring JBoss Node Name ===="
+              export JBOSS_NODE_NAME="node-$(hostname | cut -c1-22)"
+
+              echo "==== Step 2: Removing activemq-rar.rar to prevent deployment failure ===="
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar
               rm -f /opt/eap/standalone/deployments/activemq-rar.rar.deployed
 
-              echo "==== Step 2: Starting JBoss in background ===="
+              echo "==== Step 3: Starting JBoss in background ===="
               /opt/eap/bin/standalone.sh -b 0.0.0.0 --server-config=standalone-openshift.xml &
-
-              echo "==== Step 3: Waiting for JBoss to be ready ===="
+              
+              echo "==== Step 4: Waiting for JBoss to be ready ===="
               RETRY=0
               until /opt/eap/bin/jboss-cli.sh --connect --commands=":read-attribute(name=server-state)" | grep -q "running"; do
                 if [ $RETRY -ge 10 ]; then
@@ -54,32 +57,21 @@ spec:
                 RETRY=$((RETRY+1))
               done
 
-              echo "==== Step 4: Verifying activemq-rar.rar is undeployed ===="
-              /opt/eap/bin/jboss-cli.sh --connect --commands="undeploy activemq-rar.rar --keep-content"
-
               echo "==== Step 5: Setting up JBoss logging configuration ===="
-              if [ -f "$XML_CONFIG" ]; then
-                echo "Config file found: $XML_CONFIG"
-              else
-                echo "ERROR: $XML_CONFIG not found!"
-                exit 1
-              fi
-
               cat << EOF > $LOGGING_CONFIG
               formatter.CONSOLE-FORMATTER=org.jboss.logmanager.formatters.PatternFormatter
               formatter.CONSOLE-FORMATTER.pattern=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n
               EOF
 
               echo "==== Step 6: Enabling JBoss Management Console ===="
-              /opt/eap/bin/jboss-cli.sh --connect --command="/core-service=management/management-interface=http-interface:write-attribute(name=enabled,value=true)"
+              /opt/eap/bin/jboss-cli.sh --connect --command="/core-service=management/management-interface=http-interface:write-attribute(name=secure,value=false)"
 
               echo "==== Step 7: Removing unused subsystems to prevent errors ===="
               /opt/eap/bin/jboss-cli.sh --connect <<EOF
               /subsystem=jca:remove
               /subsystem=transactions:remove
-              /subsystem=ee:write-attribute(name=default-bindings,value={context-service=default})
               reload
               EOF
 
               echo "==== Step 8: Keeping JBoss Running ===="
-              fg
+              wait
