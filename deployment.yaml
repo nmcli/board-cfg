@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: jboss
-          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-14-09-36-37
+          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-14-09-50-51
           ports:
             - containerPort: 8080
           # ✅ 환경 변수 제거
