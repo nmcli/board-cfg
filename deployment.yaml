@@ -15,12 +15,15 @@ spec:
     spec:
       containers:
         - name: jboss
-          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-14-10-22-11
+          image: default-route-openshift-image-registry.apps.ext2.mtp.local/board/eap74-openjdk17-openshift-rhel8:2025-03-14-09-36-37
           ports:
             - containerPort: 8080
-          env:
-            - name: WILDFLY_ENABLE_HTTPS
-              value: "false"
-            - name: WILDFLY_ENABLE_HTTP
-              value: "true"
-          command: ["/opt/jboss/container/wildfly/s2i/run.sh"]
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "==== Removing HTTP to HTTPS redirection ===="
+              sed -i 's/redirect-socket="https"//g' /opt/eap/standalone/configuration/standalone-openshift.xml
+              
+              echo "==== Starting JBoss ===="
+              exec /opt/jboss/container/wildfly/s2i/run.sh
+
