@@ -10,5 +10,6 @@ spec:
   to:
     kind: Service
     name: board-service
+  path: /
   port:
     targetPort: 8080
